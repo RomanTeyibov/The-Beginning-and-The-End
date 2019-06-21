@@ -1,0 +1,161 @@
+<!--
+    /*
+    The Beginning and The End
+    In this animation a series of distorted multicoloured lines go up and down
+    the canvas in random locations at a random speed. Upon reaching top/bottom, the line's starting x position
+    changes, as well as its color and direction of movement.
+    I intentionally didn't use clearRect function to make the canvas fill with color.
+    It creates a colorful and dynamic effect.
+    Each line, however, has a lifespan, and after it has been exhausted,
+    the line turns permanently black. Overtime, more and more lines turn black,
+    taking away the color until ultimately everything slowly turns black.
+*/
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>The Beginning and The End</title>
+    </head>
+    <style type="text/css">
+		canvas	
+		{
+			border:1px solid black;
+		}
+
+	</style>
+    
+    <script type="text/javascript">
+        
+        window.onload = function()
+        {
+            var canvas = document.getElementById("canvas");
+            var context = canvas.getContext("2d");
+            
+            function Line()
+            {
+                //X and Y coordinates, color values, and velocity of the line.
+                this.x = Math.random() * canvas.width;
+                this.previousX = this.x;
+                this.y = canvas.height;
+                this.colorR = Math.round(Math.random()*255);
+                this.colorG = Math.round(Math.random()*255);
+                this.colorB = Math.round(Math.random()*255);
+                this.velocity = Math.round(Math.random()*10 + 1);
+                this.color = "rgb(" + this.colorR + "," +this.colorG + "," + this.colorB + ")";
+                
+                //Keeps track of the line's lifespan.
+                this.pointOfCollapse = Math.random() * 6666;
+                this.counter = 0;
+                this.death = false;
+                
+                //Draws the line.
+                this.render = function()
+                {
+                    context.strokeStyle = this.color;
+                    context.beginPath();
+                    context.moveTo(this.previousX, this.y);
+                    context.lineTo(this.x, this.y - this.velocity);
+                    context.stroke();
+                    this.previousX = this.x;
+                }
+                
+                //Changes up the color and x position of the line.
+                //If the line's lifespan has been exhausted, the line turns black.
+                //The line is "rebirthed" again after a while turning white.
+                this.randomize = function()
+                {
+                    this.x = Math.random() * canvas.width;
+                    this.previousX = this.x;
+                    if(this.death != true)
+                    {
+                        this.colorR = Math.round(Math.random()*255);
+                        this.colorG = Math.round(Math.random()*255);
+                        this.colorB = Math.round(Math.random()*255);
+                        this.color = "rgb(" + this.colorR + "," +this.colorG + "," + this.colorB + ")";
+                    }
+                    else
+                    {
+                        this.color = "rgb(0, 0, 0)";
+                    }
+                }
+            }
+            
+            //Creates an array of 100 lines that will fill the screen.
+            var numberOfObjects = 100;
+            var lines = [];
+
+            //Fills the array with lines.
+            for(var i = 0; i < numberOfObjects; i++)
+            {
+                var line = new Line();
+                lines.push(line);
+            }
+            
+            
+            main();
+
+            function main()
+            {
+                startGame();
+            }
+
+            function startGame()
+            {
+                updateGame();
+                window.requestAnimationFrame(drawGame);
+            }
+
+            function updateGame()
+            {
+                //Iterates through each line in the array
+                for (var i = 0; i< numberOfObjects; i++)
+                {
+                    //If the line reaches the ceiling of the frame, it starts going down.
+                    if(lines[i].y <= 0)
+                    {
+                        lines[i].velocity = lines[i].velocity * - 1;    
+                        lines[i].randomize();
+                    }
+                    //If the line reaches bottom of the frame, it starts going up.
+                    if(lines[i].y > canvas.height)
+                    {
+                        lines[i].velocity = lines[i].velocity * - 1;
+                        lines[i].randomize();
+                    }
+                    //Moves the line's y position by its y-velocity and creates a random curve for its x position.
+                    lines[i].y = lines[i].y - lines[i].velocity;
+                    var curveA = Math.round(Math.random()*10);
+                    var curveB = Math.round(Math.random()*10);
+                    var curve = curveA - curveB;
+                    
+                    lines[i].x += curve;
+                    //Updates the line's counter.
+                    lines[i].counter++;
+                    //If the line has exhausted its lifespan, it turns permanently black.
+                    if(lines[i].counter >= lines[i].pointOfCollapse)
+                    {
+                        lines[i].death = true;
+                    }    
+                }
+
+                window.setTimeout(updateGame, 30);
+            }
+
+            function drawGame()
+            { 
+                for (var i = 0; i < numberOfObjects; i++)
+                {
+                    lines[i].render();
+                }
+
+                window.requestAnimationFrame(drawGame);
+            }
+        }
+    
+    </script>
+    
+    </head>
+    <body>
+        <canvas id="canvas" width="1024" height="768"></canvas>
+    </body>
+</html>
